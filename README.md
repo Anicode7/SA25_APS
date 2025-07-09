@@ -63,3 +63,68 @@ datetime
 Handling window intervals (timedelta(days=1)).
 
 Parsing timestamps.
+______________________________
+
+
+Architectural Flow : 
+┌────────────────────────┐
+│ 1. CSV Files           │
+│   e.g. parking_stream  │
+└─────────┬──────────────┘
+          │
+          ▼
+┌────────────────────────┐
+│ 2. Pathway Replay      │
+│    pw.demo.replay_csv  │
+│  Streaming Ingestion   │
+└─────────┬──────────────┘
+          │
+          ▼
+┌───────────────────────────────┐
+│ 3. Preprocessing Columns      │
+│  • Parse Timestamp            │
+│  • Extract Day                │
+└─────────┬─────────────────────┘
+          │
+          ▼
+┌─────────────────────────────────────┐
+│ 4. Tumbling Window Aggregation      │
+│   (Daily windows)                   │
+│                                     │
+│  • Max Occupancy                    │
+│  • Min Occupancy                    │
+│  • Max Capacity                     │
+│  • Max Queue Length                 │
+│  • Max Traffic Condition            │
+│  • Max Special Day Indicator        │
+│  • Max Vehicle Weight Normalized    │
+└─────────┬───────────────────────────┘
+          │
+          ▼
+┌───────────────────────────────┐
+│ 5. Price Calculation          │
+│                               │
+│  price = 10 * [              │
+│     1 + 0.5 * (              │
+│       0.8 * (occ diff / cap) │
+│       +0.4 * special day     │
+│       +0.05 * queue length   │
+│       -0.3 * traffic level   │
+│       +0.2 * vehicle weight  │
+│     )                        │
+│   ]                          │
+└─────────┬────────────────────┘
+          │
+          ▼
+┌──────────────────────────────┐
+│ 6. Bokeh Visualization       │
+│   • Time Series Plot         │
+│   • Prices Over Time         │
+└─────────┬────────────────────┘
+          │
+          ▼
+┌──────────────────────────────┐
+│ 7. Panel Web App             │
+│   • Servable Dashboard       │
+└──────────────────────────────┘
+
